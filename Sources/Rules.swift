@@ -2513,7 +2513,7 @@ public struct _FormatRules {
                         let prevToken = formatter.last(.nonSpaceOrCommentOrLinebreak, before: index) {
                         switch prevToken {
                         case .identifier, .number,
-                             .operator where token != .operator("=", .infix),
+                             .operator where ![.operator("=", .infix), .operator(".", .prefix)].contains(prevToken),
                              .endOfScope where prevToken.isStringDelimiter:
                             lastKeyword = ""
                         default:

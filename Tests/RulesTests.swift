@@ -6593,6 +6593,66 @@ class RulesTests: XCTestCase {
         XCTAssertEqual(try format(input + "\n", rules: FormatRules.all, options: options), output + "\n")
     }
 
+    func testSelfNotInsertedInCaseLet2() {
+        let input = """
+        class Foo {
+            let a: String?
+            let b: String
+
+            func baz() {
+                if case let .foos(a, b) = foo, case let .bars(a, b) = bar {}
+            }
+        }
+        """
+        let output = input
+        let options = FormatOptions(explicitSelf: .insert)
+        XCTAssertEqual(try format(input, rules: [FormatRules.redundantSelf], options: options), output)
+        XCTAssertEqual(try format(input + "\n", rules: FormatRules.all, options: options), output + "\n")
+    }
+
+    func testSelfInsertedInTupleAssignment() {
+        let input = """
+        class Foo {
+            let a: String?
+            let b: String
+
+            func bar() {
+                (a, b) = ("foo", "bar")
+            }
+        }
+        """
+        let output = """
+        class Foo {
+            let a: String?
+            let b: String
+
+            func bar() {
+                (self.a, self.b) = ("foo", "bar")
+            }
+        }
+        """
+        let options = FormatOptions(explicitSelf: .insert)
+        XCTAssertEqual(try format(input, rules: [FormatRules.redundantSelf], options: options), output)
+        XCTAssertEqual(try format(input + "\n", rules: FormatRules.all, options: options), output + "\n")
+    }
+
+    func testSelfNotInsertedInTupleAssignment() {
+        let input = """
+        class Foo {
+            let a: String?
+            let b: String
+
+            func bar() {
+                let (a, b) = (self.a, self.b)
+            }
+        }
+        """
+        let output = input
+        let options = FormatOptions(explicitSelf: .insert)
+        XCTAssertEqual(try format(input, rules: [FormatRules.redundantSelf], options: options), output)
+        XCTAssertEqual(try format(input + "\n", rules: FormatRules.all, options: options), output + "\n")
+    }
+
     // explicitSelf = .initOnly
 
     func testPreserveSelfInsideClassInit() {
